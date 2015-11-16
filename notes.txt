@@ -1,0 +1,1 @@
+http://www.econometricsbysimulation.com/2012/10/stata-write-your-own-fast-bootstrap.html
