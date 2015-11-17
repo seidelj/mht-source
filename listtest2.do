@@ -11,9 +11,9 @@ gl subgroups "g1 g2 g3"
 *Create parameters from data
 gl n = _N // the number of observations
 gl B = 10 // the number of simulated samples
-gl numoc = `: word count $outcomes' // the number of outcomes 
+gl numoc = `: word count $outcomes' // the number of outcomes
 
-egen sub = group($subgroups) 
+egen sub = group($subgroups)
 levelsof sub, loc(sub_levels)
 gl numsub `: word count `sub_levels'' // the number of subgroups
 
@@ -136,7 +136,5 @@ mata: statsall = J($nh, 8 + $B, 0) // columns 1-5 present the id's of the hypoth
 								   // column 7 presents p-values based on single hypothesis testing
 								   // column 8 presents 1- p values based on the actual data
 								   // columns 9 through B+9 contain the corresponding 1-p values based on the simulated samples
-																								   
+
 mata: id = (1::$nh) //hypothesis id
-
-
