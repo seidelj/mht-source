@@ -1,1 +1,18 @@
+
 http://www.econometricsbysimulation.com/2012/10/stata-write-your-own-fast-bootstrap.html
+
+combo: which combinaitons of hypothesis does user want to test
+
+may want to allow user to choose seed value
+
+Begining at (matlab) 
+    for i = 1:nh
+removes violations of transitivity.
+
+Slowest section of stata code is the bootstraop.  Lines 60-81
+
+Justin stooped at matlab comment
+    % calculation p-values based on multiple hypothesis testing
+
+
+ select in matlab code allows users to remove hypothesis
