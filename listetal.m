@@ -19,9 +19,9 @@ function [output]=listetal(Y,sub,D,combo,select)
 % The output argument "output" is a matrix with 10 columns:
 % columns 1-4 present the id's of the corresponding outcomes, subgroups, and treatment (control) groups;
 % the 5th column presents absolute values of difference in sample means;
-% the 6th column presents p-values based on single hypothesis testing;
-% the 7th column presents p-values based on the multiple testing procedure described in Theorem 2.2 of List et al. (2015);
-% the 8th column presents p-values based on the multiple testing procedure described in Remark 2.1 of List et al. (2015);
+% the 6th column presents p-values based on the single testing procedure described in Remark 3.1 of List et al. (2015);
+% the 7th column presents p-values based on the multiple testing procedure described in Theorem 3.1 of List et al. (2015);
+% the 8th column presents p-values based on the multiple testing procedure described in Remark 3.7 of List et al. (2015);
 % the 9th column presents p-values based on the Bonferroni method;
 % the 10th column presents p-values based on the Holm's method.
 
@@ -95,7 +95,7 @@ end
 
 % calculate p-values based on single hypothesis testing
 
-alphasin=zeros(numoc,numsub,numpc); % the smallest alpha's that reject the hypotheses based on single hypothesis testing
+alphasin=zeros(numoc,numsub,numpc); % the smallest alpha's that reject the hypotheses based on the single testing procedure described in Remark 3.1
 
 for i=1:numoc
     for j=1:numsub
@@ -136,8 +136,8 @@ for i=1:numoc
 end
 
 statsrank=sortrows(statsall,7); % rank the rows according to the p-values based on single hypothesis testing
-alphamul=zeros(nh,1); % the smallest alpha's that reject the hypotheses based on Theorem 2.2
-alphamulm=zeros(nh,1); % the smallest alpha's that reject the hypotheses based on Remark 2.1
+alphamul=zeros(nh,1); % the smallest alpha's that reject the hypotheses based on Theorem 3.1
+alphamulm=zeros(nh,1); % the smallest alpha's that reject the hypotheses based on Remark 3.7
 
 for i=1:nh
     maxstats=max(statsrank(i:end,9:end),[],1); % the maximums of the 1-p values among all the remaning hypotheses for all the simulated samples
@@ -220,6 +220,7 @@ holm=min(statsrank(:,7).*(nh:-1:1)',ones(nh,1)); % p-values based on the Holm's 
 
 output=sortrows([statsrank(:,1:7) alphamul alphamulm bon holm],1); % restore the order
 output=output(:,2:end);
+% check=output(:,6)<=output(:,7) & output(:,7)>=output(:,8) & output(:,7)<=output(:,9) & output(:,7)<=output(:,10); % check if the results are what we should expect
 output=dataset({output,'outcome','subgroup','treatment1','treatment2','diff_in_means','single_testing','Thm2_2','Remark2_1','Bonf','Holm'});
 
 
