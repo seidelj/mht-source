@@ -1,140 +1,117 @@
 clear all
 set seed 42
-cd "C:\Users\justin holz\Desktop\Dropbox\MHT\data"
-insheet using practice_data.csv, comma clear
+cd "/home/joseph/mht/data"
+insheet using data.csv, comma names
 
-*User Parameters
-gl treatments "treatment"
-gl outcomes "y1 y2 y3"
-gl subgroups "g1 g2 g3"
+//Creating outcome variable
+gen amountmat = amount * ratio
 
-*Create parameters from data
-gl n = _N // the number of observations
-gl B = 10 // the number of simulated samples
-gl numoc = `: word count $outcomes' // the number of outcomes
+mata:
+function mdarray(r, c, n, fill)
+{
+	a = J(n,1,NULL)
+	for (i=1; i<=rows(a); i++)
+	{
+		for (j=1; j<=cols(a); j++)
+		{
+			a[i,j] = &J(r,c,fill)
+		}
+	}
+	return(a)
+}
 
-egen sub = group($subgroups)
-levelsof sub, loc(sub_levels)
-gl numsub `: word count `sub_levels'' // the number of subgroups
+function n3darray( rowvec, fill )
+{
+ 	dim = cols(rowvec)
+	A = asarray_create("real", dim)
+	for (k = 1; k <= rowvec[1,3]; k++)
+	{
+		asarray(A, (.,., k), J(rowvec[1,1], rowvec[1,2], fill))
+	}
+	return(A)
+}
 
-egen D = group($treatments)
-levelsof D, loc(D_levels)
-gl numd =  `: word count `D_levels'' // the number of treatments (not including the control group)
+function n4darray( rowvec, fill )
+{
+ 	dim = cols(rowvec)
+	A = asarray_create("real", dim)
+	for (k = 1; k <= rowvec[1,3]; k++)
+	{
+		for (l = 1; l <= rowvec[1,4]; l++)
+		{
+			asarray(A, (.,., k, l), J(rowvec[1,1], rowvec[1,2], fill))
+		}
+	}
 
-gl nh = 24 //number of hypoth
+	return(A)
+}
 
-*Create matrices of zeroes for each pairwise comparison to populate with studentized absolute differences in means
-forv d = 1 / $numd { // Create empty matrices to hold the actual statistics
-	forv j = 2 / $numd {
-		if `d' < `j' {
-			mata: statsact_`d'_`j' = J($numoc ,$numsub ,0)
+function put(val,x,i,j,k)
+{
+	/* Usage: value to put, matrix to put it in, i,j of dimension k, to put it at.*/
+	(*(x[k,1]))[i,j]=val
+}
+
+function get(x,i,j,k)
+{
+	/* Usage: matrix to get from, i,j of dimension k, of value to get. */
+	return((*(x[k,1]))[i,j])
+}
+
+// Parameters for the listetal. ex.1
+
+// USER SHOULD ULTIMATELY SPECIFY THE STATA DATA COLUMNS TO USE
+Y = st_data(.,("gave", "amount", "amountmat", "amountchange"))
+D = st_data(.,("treatment"))
+sub = J(rows(D), 1,1) // If multiple it should created egen groupid = group(group1, group2, group3, etc)
+numoc = cols(Y)
+numsub = rows(uniqrows(sub))
+numg=rows(uniqrows(D)) -1
+combo = (J(numg,1,0), (1::numg))
+numpc=rows(combo)
+select = mdarray(numoc, numsub, numpc, 1)
+
+
+//Parameters set by the function
+n = rows(Y)
+B = 3000
+
+// comput the studentized difference in means
+// for all the hypothises based on actual data
+
+meanact = mdarray(numoc, numsub, numg+1, 0)
+varact = mdarray(numoc, numsub, numg+1, 0)
+Nact=mdarray(numoc, numsub, numg+1, 0)
+
+for (i=1; i <= numoc; i++)
+{
+	for (j=1; j<=numsub; j++)
+	{
+		for (k=0; k<=numg; k++)
+		{
+			w = (sub :== j :& D :== k)
+			put(mean(Y[.,i], w), meanact, i,j,k+1)
+			put(variance(Y[.,i], w), varact, i, j, k+1)
+			CP = quadcross(w,0, Y[.,i],1)
+			put(CP[cols(CP)], Nact, i, j, k+1)
 		}
 	}
 }
 
-*Compute the studentized absolute differences in means for all the hypotheses based on the actual data
-forv y = 1 / $numoc {
-	forv g = 1 / $numsub {
-		forv d = 1 / $numd {
-			forv j = 2 / $numd {
-				if `d' < `j' {
-					noi cap ttest `: word `y' of $outcomes' if sub == `g' & (D == `d' | D == `j'), by(D)
-					noi cap mata: statsact_`d'_`j'[`y',`g'] = abs((`r(mu_1)' - `r(mu_2)') / sqrt(`r(sd_1)'^2 / `r(N_1)' + `r(sd_2)'^2 / `r(N_2)'))
-				}
-			}
-		}
-	}
-}
+// I have no idea what will happen when this ends up being a n-dimension matrix
+diffact = *meanact[combo[.,1]+J(numpc,1,1),1] - *meanact[combo[.,2]+J(numpc,1,1),1]
+abdiffact = abs(diffact)
+ones = J(numpc,1,1)
+statsact = abdiffact :/ sqrt(*varact[combo[.,1]+ones,1] :/ *Nact[combo[.,1]+ones,1] ///
+	+ *varact[combo[.,2]+ones,1] :/ *Nact[combo[.,2]+ones,1])
 
-*Construct bootstrap samples and compute the test statistics for each simulated sample
-forv g = 1 / $numsub {
-	forv d = 1 / $numd { // Create empty matrices to hold the bootstrapped statistics
-		forv j = 2 / $numd {
-			if `d' < `j' {
-				mata: statsboot_`d'_`j'_`g' = J($B ,$numoc ,0)
-			}
-		}
-	}
-}
+/*
+** Construct boostrap samples and computes the test
+** stastics and the corresponding 1-p values for each
+** simulated sample
+*/
 
-forv b = 1/$B {
-	preserve
-		mata: draw = ceil(runiform($n,1):*$n)
-		mata: expander = J($n,1, 0)
-		mata: for (i = 1 ; i <= $n; i++) expander[i] = sum(draw :== i) // Count the number of items per observation to generate.
-		getmata expander = expander
-		drop if expander == 0
-		expand expander
+rseed(0)
+idboot =  floor(runiform(n,  B, 1, n))
 
-		forv y = 1 / $numoc {
-			forv g = 1 / $numsub {
-				forv d = 1 / $numd {
-					forv j = 2 / $numd {
-						if `d' < `j' {
-							noi cap ttest `: word `y' of $outcomes' if sub == `g' & (D == `d' | D == `j'), by(D)
-							noi cap mata: statsboot_`d'_`j'_`g'[`b',`y'] = abs(`r(mu_1)' - `r(mu_2)') / sqrt(`r(sd_1)'^2 / `r(N_1)' + `r(sd_2)'^2 / `r(N_2)')
-						}
-					}
-				}
-			}
-		}
-	restore
-}
-
-*Convert the statistics to 1 - (p-values)
-forv g = 1 / $numsub {
-	forv d = 1 / $numd {
-		forv j = 2 / $numd {
-			if `d' < `j' {
-				mata: pact_`d'_`j' = J($numoc ,$numsub ,0) // a matrix of 1-p values of the actual data
-				mata: pboot_`d'_`j'_`g' = J($B ,$numoc ,0) // a matrix of 1-p values of all the simulated data
-			}
-		}
-	}
-}
-
-forv y = 1/ $numoc {
-	forv g = 1/ $numsub {
-		forv d = 1 / $numd {
-			forv j = 2 / $numd {
-				if `d' < `j' {
-					mata: pact_`d'_`j'[`y',`g'] = 1 - sum(statsboot_`d'_`j'_`g'[.,`y'] :>= statsact_`d'_`j'[`y',`g']) / $B
-					forv l = 1/$B {
-						mata: pboot_`d'_`j'_`g'[`l',`y'] = 1 - sum(statsboot_`d'_`j'_`g'[.,`y'] :>= statsboot_`d'_`j'_`g'[`l',`y']) / $B
-					}
-				}
-			}
-		}
-	}
-}
-
-*Calculate p-values based on single hypothesis testing
-forv d = 1 / $numd { // Create empty matrices to hold the actual statistics
-	forv j = 2 / $numd {
-		if `d' < `j' {
-			mata: psin_`d'_`j' = J($numoc ,$numsub ,0)
-		}
-	}
-}
-
-forv y = 1/ $numoc {
-	forv g = 1/$numsub {
-		forv d = 1 / $numd {
-			forv j = 2 / $numd {
-				if `d' < `j' {
-					mata: q = sum(pact_`d'_`j'[`y',`g'] :> sort(pboot_`d'_`j'_`g'[.,`y'],-1))  / $B
-					mata: psin_`d'_`j'[`y',`g'] = q
-				}
-			}
-		}
-	}
-}
-
-*Calculate p-values based on multiple hypothesis testing
-mata: statsall = J($nh, 8 + $B, 0) // columns 1-5 present the id's of the hypotheses, outcomes, subgroups, and treatment (control) groups
-						           // column 6 shows the studentized difference in means for all hypotheses based on the actual data
-								   // column 7 presents p-values based on single hypothesis testing
-								   // column 8 presents 1- p values based on the actual data
-								   // columns 9 through B+9 contain the corresponding 1-p values based on the simulated samples
-
-mata: id = (1::$nh) //hypothesis id
+end
