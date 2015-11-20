@@ -1,4 +1,4 @@
-data=csvread('data.csv',1,0); % read the dataset
+data=csvread('data/data.csv',1,0); % read the dataset
 
 %% Hypothesis testing with multiple outcomes: 
 

@@ -6,6 +6,9 @@ insheet using data.csv, comma names
 //Creating outcome variable
 gen amountmat = amount * ratio
 
+cd
+cd mht
+
 mata:
 function mdarray( rowvec , fill)
 {
@@ -94,11 +97,15 @@ for (i=1; i <= numoc; i++)
 	}
 }
 
+diffact = mdarray((numoc, numsub, numpc), .)
+abdiffact = mdarray((numoc, numsub, numpc), .)
+statsact = mdarray((numoc, numsub, numpc), .)
+
 // I have no idea what will happen when this ends up being a n-dimension matrix
-diffact = *meanact[combo[.,1]+J(numpc,1,1),.] - *meanact[combo[.,2]+J(numpc,1,1),.]
-abdiffact = abs(diffact)
+(*(diffact[.,.]))[.,.] = *meanact[combo[.,1]+J(numpc,1,1),.] - *meanact[combo[.,2]+J(numpc,1,1),.]
+(*(abdiffact[.,.]))[.,.] = abs((*(diffact[.,.]))[.,.])
 ones = J(numpc,1,1)
-statsact = abdiffact :/ sqrt(*varact[combo[.,1]+ones,.] :/ *Nact[combo[.,1]+ones,.] ///
+(*(statsact[.,.]))[.,.] = (*(abdiffact[.,.]))[.,.] :/ sqrt(*varact[combo[.,1]+ones,.] :/ *Nact[combo[.,1]+ones,.] ///
 	+ *varact[combo[.,2]+ones,.] :/ *Nact[combo[.,2]+ones,.])
 
 /*
@@ -113,6 +120,7 @@ statsboot= mdarray((B, numoc, numsub, numpc), 0)
 meanboot = mdarray((numoc, numsub, numg+1), 0)
 varboot = mdarray((numoc, numsub, numg+1), 0)
 Nboot = mdarray((numoc, numsub, numg+1), 0)
+diffboot = mdarray((numoc, numsub, numpc),.)
 
 for (i=1; i <= B; i++)
 {
@@ -132,11 +140,56 @@ for (i=1; i <= B; i++)
 				put(CP[cols(CP)], Nboot, (j, k, l+1))
 			}
 		}
-		diffboot = *meanboot[combo[.,1]+J(numpc,1,1),.] - *meanboot[combo[.,2]+J(numpc,1,1),.]
+		(*(diffboot[.,.]))[.,.] = *meanboot[combo[.,1]+J(numpc,1,1),.] - *meanboot[combo[.,2]+J(numpc,1,1),.]
 		ones = J(numpc, 1,1)
-		(*(statsboot[.,.]))[i,.] = (abs(diffboot-diffact) :/ sqrt(*varboot[combo[.,1] + ones, .] :/ *Nboot[combo[.,1]+ ones,.] ///
+		(*(statsboot[.,.]))[i,.] = (abs((*(diffboot[.,.]))[.,.]-(*(diffact[.,.]))[.,.]) :/ sqrt(*varboot[combo[.,1] + ones, .] :/ *Nboot[combo[.,1]+ ones,.] ///
 			+ *varboot[combo[.,2] + ones,.] :/ *Nboot[combo[.,2] + ones,.]))'
 	}
 }
 
+pact = mdarray((numoc,numsub, numpc), 0 ) // a matrix of 1-p values of the actual data
+pboot = mdarray((B, numoc, numsub, numpc), 0) // a matrix of 1-p values of the simulated data
+
+for (i=1; i<=numoc; i++)
+{
+	for (j=1; j<=numsub; j++)
+	{
+		for (k=1; k<=numpc; k++)
+		{
+		p =	1 - sum((*(statsboot[j,k]))[.,i] :>= (*(statsact[.,k]))[i,j] * J(B,1,1)) / B
+		put(p, pact, (i,j,k))
+			for (l=1; l<=B; l++)
+			{
+				sp = 1 - sum((*(statsboot[j,k]))[.,i] :>= (*(statsboot[j,k]))[l,i] * J(B,1,1)) / B;
+				put(sp, pboot, (l,i,j,k))
+			}
+		}
+	}
+}
+
+
+/* calculate p-values based on single hypothesis testing */
+
+alphasin = mdarray((numoc, numsub, numpc), 0)
+
+for (i=1; i<=numoc; i++)
+{
+	for (j=1; j<=numsub; j++)
+	{
+		for (k=1; k<=numpc; k++)
+		{
+			ptemp =  (*(pboot[j,k]))[.,i]
+			sortp = sort(ptemp, -1)
+			v = (*(pact[1,.]))[1,1] * J(B,1,1 ) :>= sortp
+			minindex(v, 2, indexes, where)
+			q = where[1,2]/B
+			if (rows[where] == 1) put(1, alphasin, (i,j,k))
+			else put(q, alphasin, (i,j,k))
+		}
+	}
+}
+
 end
+
+cd
+cd mht
