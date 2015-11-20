@@ -70,7 +70,7 @@ select = mdarray((numoc, numsub, numpc), 1)
 
 //Parameters set by the function
 n = rows(Y)
-B = 100000
+B = 3000
 
 // comput the studentized difference in means
 // for all the hypothises based on actual data
@@ -95,11 +95,11 @@ for (i=1; i <= numoc; i++)
 }
 
 // I have no idea what will happen when this ends up being a n-dimension matrix
-diffact = *meanact[combo[.,1]+J(numpc,1,1),1] - *meanact[combo[.,2]+J(numpc,1,1),1]
+diffact = *meanact[combo[.,1]+J(numpc,1,1),.] - *meanact[combo[.,2]+J(numpc,1,1),.]
 abdiffact = abs(diffact)
 ones = J(numpc,1,1)
-statsact = abdiffact :/ sqrt(*varact[combo[.,1]+ones,1] :/ *Nact[combo[.,1]+ones,1] ///
-	+ *varact[combo[.,2]+ones,1] :/ *Nact[combo[.,2]+ones,1])
+statsact = abdiffact :/ sqrt(*varact[combo[.,1]+ones,.] :/ *Nact[combo[.,1]+ones,.] ///
+	+ *varact[combo[.,2]+ones,.] :/ *Nact[combo[.,2]+ones,.])
 
 /*
 ** Construct boostrap samples and computes the test
@@ -125,13 +125,17 @@ for (i=1; i <= B; i++)
 		{
 			for (l=0; l <= numg; l++)
 			{
-				w = (subboot :==k :& Dboot :== l)
+				w = (subboot :== k :& Dboot :== l)
 				put(mean(Yboot[.,j], w), meanboot, (j, k, l+1))
 				put(variance(Yboot[.,j], w), varboot, (j,k,l+1))
 				CP = quadcross(w, 0, Yboot[.,j] , 1)
 				put(CP[cols(CP)], Nboot, (j, k, l+1))
 			}
 		}
+		diffboot = *meanboot[combo[.,1]+J(numpc,1,1),.] - *meanboot[combo[.,2]+J(numpc,1,1),.]
+		ones = J(numpc, 1,1)
+		(*(statsboot[.,.]))[i,.] = (abs(diffboot-diffact) :/ sqrt(*varboot[combo[.,1] + ones, .] :/ *Nboot[combo[.,1]+ ones,.] ///
+			+ *varboot[combo[.,2] + ones,.] :/ *Nboot[combo[.,2] + ones,.]))'
 	}
 }
 
