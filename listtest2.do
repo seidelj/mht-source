@@ -180,13 +180,62 @@ for (i=1; i<=numoc; i++)
 		{
 			ptemp =  (*(pboot[j,k]))[.,i]
 			sortp = sort(ptemp, -1)
-			v = (*(pact[1,.]))[1,1] * J(B,1,1 ) :>= sortp
-			minindex(v, 2, indexes, where)
-			q = where[1,2]/B
-			if (rows[where] == 1) put(1, alphasin, (i,j,k))
-			else put(q, alphasin, (i,j,k))
+			v = (*(pact[k,.]))[i,j] * J(B,1,1 ) :>= sortp
+			indx=NULL; where=NULL;
+			minindex(v, 1, indx, where)
+			q = indx[rows(indx),1]/B
+			put(q, alphasin, (i,j,k))
 		}
 	}
+}
+
+psin = mdarray((numoc, numsub, numpc), 0)
+(*(psin[.,.]))[.,.] = (*(alphasin[.,.]))[.,.]  // p-values based on single hypothesis testing
+
+/* Calculate p-values based on multiple hypothesis tesitng */
+
+nh = 0
+for (k=1; k <= numpc; k++)
+{
+	nh = nh + sum((*(select[k,.]))[.,.])
+}
+statsall = J(nh, 8+B, 0)
+
+counter=1
+for (i=1; i<=numoc; i++)
+{
+	for (j=1; j<=numsub; j++)
+	{
+		for (k=1; k<=numpc; k++)
+		{
+			if ( (*(select[k, .]))[i,j] == 1 ){
+				rowvect = (i,j,k)
+				statsall[counter, .] = (counter, i, j, combo[k, .], get(abdiffact, rowvect) , get(psin, rowvect), get(pact, rowvect), get(pboot, (., i, j, k))')
+				counter = counter + 1
+			}
+		}
+	}
+}
+
+statsrank = sort(statsall, 7) // rank the rows according to the p-values based on single hypothesis testin
+alpamul = J(nh, 1, 0) // the smallest alpah's that reject the hypothesis based on Theorem 3.1
+alphamulm = J(nh, 1, 0) // the smallest alpha's that reject the hypothesis based on Remark 3.7
+
+for (i=1; i<=nh; i++)
+{
+	maxstats = colmax(statsrank[(i::rows(statsrank)), (9::cols(statsrank))]) // the maxiums of the 1-p values among all the remaining hypotheses for all the simulated samples
+	sortmaxstats = sort(maxstats', -1)'
+	indx=NULL; where=NULL;
+	v = statsrank[i, 8] :>= sortmaxstats
+	minindex(v, 1, indx, where)
+	q = indx[rows(indx),1]/B
+	alphamul(i) = q
+	if (i==1) alphamulm=alphamu(i)
+	else sortmaxstatsm=J(1,B,0)
+	for (j=nh-i+1; j >= 1; j--)
+		{
+			printf("%f", j)
+		}
 }
 
 end
