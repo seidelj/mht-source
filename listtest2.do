@@ -234,7 +234,7 @@ for (i=1; i<=nh; i++)
 	else sortmaxstatsm=J(1,B,0)
 	for (j=nh-i+1; j >= 1; j--)
 		{
-			printf("%f", j)
+
 		}
 }
 
