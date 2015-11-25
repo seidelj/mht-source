@@ -2,17 +2,16 @@ mata:
 
 function nchoosek(V, K)
 {
+    // Creates a N!/K!(N-K)! by K array where N = length of colvector b
+    // of all unique combinatons of length K found on V.
     A = NULL
-    iterations = comb(cols(V), K)
-    for (i=1; i<=iterations; i++){
-        for (j = i+1; j <= iterations; j++){
-            if (A == NULL) A = (i, j)
-            else A = A \ (i, j)
+    for (i=1; i<=cols(V); i++){
+        for (j = i+1; j <= cols(V); j++){
+            if (A == NULL) A = (V[1,i], V[1,j])
+            else A = A \ (V[1,i], V[1,j])
         }
     }
     return(A)
 }
-
-A = nchoosek((1,2,3), 2)
 
 end
