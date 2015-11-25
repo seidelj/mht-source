@@ -78,7 +78,7 @@ D = st_data(.,("ratio"))
 sub = st_data(., ("groupids"))
 numoc = cols(Y)
 numsub = rows(uniqrows(sub))
-numg=rows(uniqrows(D)) -1
+numg=rows(uniqrows(D)) - 1
 combo = (J(numg,1,0), (1::numg))
 numpc=rows(combo)
 select = mdarray((numoc, numsub, numpc), 1)
@@ -90,7 +90,7 @@ n = rows(Y)
 B = 3000
 numoc = cols(Y)
 numsub = rows(uniqrows(sub))
-numg=rows(uniqrows(D))
+numg=rows(uniqrows(D)) - 1
 numpc=rows(combo)
 
 // comput the studentized difference in means
@@ -160,20 +160,21 @@ for (i=1; i <= B; i++)
 				put(CP[cols(CP)], Nboot, (j, k, l+1))
 			}
 		}
+		mdstatsarr = mdarray((numoc, numsub, rows(combo)), .)
 		for (k = 1; k <= rows(combo); k++){
 			diff = get(meanboot, (.,.,combo[k,1]:+1)) - get(meanboot, (.,.,combo[k,2]:+1))
 			put(diff, diffboot, (.,.,k))
 			//(*(diffboot[.,.]))[.,.] = *meanboot[combo[.,1]+J(numpc,1,1),.] - *meanboot[combo[.,2]+J(numpc,1,1),.]
 
-			statsarr = abs(get(diffboot, (.,.,k)) - get(diffact, (.,.,k))) :/ sqrt(get(varboot, (.,.,combo[k,1]:+1)) :/ get(Nboot, (.,.,combo[k,1]:+ 1)) ///
-				+ get(varboot, (.,.,combo[k,2]:+1)) :/ get(Nboot, (.,.,combo[k,2]:+1)))'
+			statsarr = (abs(get(diffboot, (.,.,k)) - get(diffact, (.,.,k))) :/ sqrt(get(varboot, (.,.,combo[k,1]:+1)) :/ get(Nboot, (.,.,combo[k,1]:+ 1)) ///
+				+ get(varboot, (.,.,combo[k,2]:+1)) :/ get(Nboot, (.,.,combo[k,2]:+1))))
 			//statsarr = (abs((*(diffboot[.,.]))[.,.]-(*(diffact[.,.]))[.,.]) :/ sqrt(*varboot[combo[.,1] + ones, .] :/ *Nboot[combo[.,1]+ ones,.] ///
 			//	+ *varboot[combo[.,2] + ones,.] :/ *Nboot[combo[.,2] + ones,.]))'
-
-			for (kk=1; kk<=numsub; kk++){
-				for (ll=1; ll<=numpc; ll++){
-					(*(statsboot[kk,ll]))[i,.] = statsarr[kk, .]
-				}
+			put(statsarr, mdstatsarr, (.,., k))
+		}
+		for (kk=1; kk<=numsub; kk++){
+			for (ll=1; ll<=numpc; ll++){
+				(*(statsboot[kk,ll]))[i,.] = get(mdstatsarr, (.,.,ll))'[kk,.]
 			}
 		}
 	}
