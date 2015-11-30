@@ -4,11 +4,11 @@ insheet using data.csv, comma names
 
 //Creating outcome variable
 gen amountmat = amount * ratio
-egen groupids = group(redcty, red0)
+egen groupids = group(redcty red0)
 cd
 cd mht
 
-do listtest2, quietly
+do listtest2
 
 
 

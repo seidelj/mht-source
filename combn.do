@@ -14,4 +14,25 @@ function nchoosek(V, K)
     return(A)
 }
 
+
+
+function find(V)
+{
+    // FInds the first nonzero index of a col vector V
+    indx = NULL
+    for (i=1; i <= rows(V); i++){
+	if (V[i] != 0){
+	    indx = i 
+	    break
+	}
+    }
+    
+    return(indx) 
+}
+
+
+V = (0, 0, 1, 0, 0)'
+
+result = find(V)
+
 end

@@ -47,6 +47,7 @@ for i=1:numoc
         end
     end
 end
+
 diffact=meanact(:,:,combo(:,1)+ones(numpc,1))-meanact(:,:,combo(:,2)+ones(numpc,1)); % a matrix of differences in sample means for all outcomes, subgroups, and pairwise comparisons based on actual data
 abdiffact=abs(diffact); % a matrix of absolute differences in sample means for all outcomes, subgroups, and pairwise comparisons based on actual data
 statsact=abdiffact./sqrt(varact(:,:,combo(:,1)+ones(numpc,1))./Nact(:,:,combo(:,1)+ones(numpc,1))...
@@ -152,66 +153,66 @@ for i=1:nh
         alphamulm(i)=alphamul(i);
     else
         sortmaxstatsm=zeros(1,B); % compute at each quantile the maximum of the critical values of all the "true" subsets of hypotheses
-    for j=nh-i+1:-1:1
-        subset=combntns(statsrank(i:end,1),j); % all the subsets of hypotheses with j elements
-        sumcont=0; % the total number of subsets of hypotheses with j elements that contradict any of the previously rejected hypotheses
-        for k=1:size(subset,1)
-            cont=0; % cont=1 if any of the previously rejected hypotheses contradicts the current subset of hypotheses
-        for l=1:i-1
-            sameocsub=subset(k,ismember(statsall(subset(k,:),2:3),statsrank(l,2:3),'rows')==1); % the hypotheses in "subset(k,:)" with the same outcome and subgroup as the lth hypothesis
-            tran=mat2cell(statsall(sameocsub,4:5),ones(1,size(sameocsub,2)),2); % this cell array presents all the sets of equal treatment (control) groups implied by "transitivity" under the null hypotheses in "sameocsub" 
-            trantemp=tran;
-            if size(sameocsub,2)<=1
-                cont=0;
-                maxstatsm=max(statsall(subset(k,:),9:end),[],1); % the maximums of the 1-p values within the subset of hypotheses for all the simulated samples
-                sortmaxstatsm=max(sortmaxstatsm,sort(maxstatsm,'descend'));
-                break;
-            else
-                counter=1;
-                while size(tran,1)>size(trantemp,1) || counter==1
-                tran=trantemp;
-                trantemp=tran(1);
-                counter=counter+1;
-                for m=2:size(tran,1)
-                    belong=0; % the total number of rows of "transtemp" that "tran{m}" can be connected to by "transitivity"
-                    for n=1:size(trantemp,1)
-                    if unique([trantemp{n} tran{m}])<size(trantemp{n},2)+size(tran{m},2)
-               trantemp{n}=unique([trantemp{n} tran{m}]);
-               belong=belong+1;
-               if n==size(trantemp,1) && belong==0
-               trantemp=[trantemp;tran{m}];
-               end
+        for j=nh-i+1:-1:1
+            subset=combntns(statsrank(i:end,1),j); % all the subsets of hypotheses with j elements
+            sumcont=0; % the total number of subsets of hypotheses with j elements that contradict any of the previously rejected hypotheses
+            for k=1:size(subset,1)
+                cont=0; % cont=1 if any of the previously rejected hypotheses contradicts the current subset of hypotheses
+                for l=1:i-1
+                    sameocsub=subset(k,ismember(statsall(subset(k,:),2:3),statsrank(l,2:3),'rows')==1); % the hypotheses in "subset(k,:)" with the same outcome and subgroup as the lth hypothesis
+                    tran=mat2cell(statsall(sameocsub,4:5),ones(1,size(sameocsub,2)),2); % this cell array presents all the sets of equal treatment (control) groups implied by "transitivity" under the null hypotheses in "sameocsub" 
+                    trantemp=tran;
+                    if size(sameocsub,2)<=1
+                        cont=0;
+                        maxstatsm=max(statsall(subset(k,:),9:end),[],1); % the maximums of the 1-p values within the subset of hypotheses for all the simulated samples
+                        sortmaxstatsm=max(sortmaxstatsm,sort(maxstatsm,'descend'));
+                        break;
+                    else
+                        counter=1;
+                        while size(tran,1)>size(trantemp,1) || counter==1
+                            tran=trantemp;
+                            trantemp=tran(1);
+                            counter=counter+1;
+                            for m=2:size(tran,1)
+                                belong=0; % the total number of rows of "transtemp" that "tran{m}" can be connected to by "transitivity"
+                                for n=1:size(trantemp,1)
+                                    if unique([trantemp{n} tran{m}])<size(trantemp{n},2)+size(tran{m},2)
+                                        trantemp{n}=unique([trantemp{n} tran{m}]);
+                                        belong=belong+1;
+                                        if n==size(trantemp,1) && belong==0
+                                            trantemp=[trantemp;tran{m}];
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        for p=1:size(tran,1)
+                            if sum(ismember(statsrank(l,4:5),tran{p,:}))==2 % the lth previously rejected hypotheses contract the current subset of hypotheses
+                                cont=1;
+                                break;
+                            end
+                        end
                     end
-                    end
-                end
-                end
-                for p=1:size(tran,1)
-                    if sum(ismember(statsrank(l,4:5),tran{p,:}))==2 % the lth previously rejected hypotheses contract the current subset of hypotheses
-                        cont=1;
+                    if cont==1
                         break;
                     end
                 end
+                sumcont=sumcont+cont;
+                if cont==0
+                    maxstatsm=max(statsall(subset(k,:),9:end),[],1); 
+                    sortmaxstatsm=max(sortmaxstatsm,sort(maxstatsm,'descend'));
+                end
             end
-            if cont==1
-                break;
+            if sumcont==0
+                break; % If all the subsets of hypotheses with j elements do not contradict any of the previously rejected hypotheses, smaller subsets do not either.
             end
         end
-        sumcont=sumcont+cont;
-        if cont==0
-            maxstatsm=max(statsall(subset(k,:),9:end),[],1); 
-            sortmaxstatsm=max(sortmaxstatsm,sort(maxstatsm,'descend'));
+        qm=find(statsrank(i,8)>=sortmaxstatsm,1)/B;
+        if isempty(qm)==0
+            alphamulm(i)=qm;
+        else    
+            alphamulm(i)=1;
         end
-        end
-        if sumcont==0
-            break; % If all the subsets of hypotheses with j elements do not contradict any of the previously rejected hypotheses, smaller subsets do not either.
-        end
-    end
-    qm=find(statsrank(i,8)>=sortmaxstatsm,1)/B;
-    if isempty(qm)==0
-        alphamulm(i)=qm;
-    else    
-        alphamulm(i)=1;
-    end
     end
 end
     

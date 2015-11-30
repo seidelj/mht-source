@@ -1,6 +1,22 @@
 clear all
 cd "/home/joseph/mht/data"
+//get idboot from matlab for testing
+insheet using idboot.csv, comma
+mata: matboot = st_data(.,.)
+clear
+insheet using Y.csv, comma
+mata: matY = st_data(.,.)
+clear
+insheet using D.csv, comma
+mata: matD = st_data(.,.)
+clear
+insheet using sub.csv, comma
+mata: matsub = st_data(.,.)
+clear
+
 insheet using data.csv, comma names
+
+
 
 //Creating outcome variable
 gen amountmat = amount * ratio
@@ -70,20 +86,35 @@ function nchoosek(V, K)
     return(A)
 }
 
+function find(V)
+{
+    // FInds the first nonzero index of a col vector V
+    indx = NULL
+    for (i=1; i <= rows(V); i++){
+	if (V[i] != 0){
+	    indx = i 
+	    break
+	}
+    }
+    
+    return(indx) 
+}
 
 //function listetal(Y, sub, D, combo, select ){
 // Parameters for the listetal. ex.5
-Y = st_data(.,("gave", "amount", "amountmat", "amountchange"))
-D = st_data(.,("ratio"))
-sub = st_data(., ("groupids"))
+
+//Y = st_data(.,("gave", "amount", "amountmat", "amountchange"))
+Y = matY
+//D = st_data(.,("ratio"))
+D = matD
+//sub = st_data(., ("groupids"))
+sub = matsub
 numoc = cols(Y)
 numsub = rows(uniqrows(sub))
-numg=rows(uniqrows(D)) - 1
+numg=rows(uniqrows(D)) -1
 combo = (J(numg,1,0), (1::numg))
 numpc=rows(combo)
 select = mdarray((numoc, numsub, numpc), 1)
-
-
 
 //Parameters set by the function
 n = rows(Y)
@@ -135,7 +166,8 @@ for (i=1; i <=rows(combo); i++){
 */
 
 rseed(0)
-idboot =  floor(runiform(n,  B, 1, n+1))
+//idboot =  floor(runiform(n,  B, 1, n+1))
+idboot = matboot
 statsboot= mdarray((B, numoc, numsub, numpc), 0)
 meanboot = mdarray((numoc, numsub, numg+1), 0)
 varboot = mdarray((numoc, numsub, numg+1), 0)
@@ -160,22 +192,18 @@ for (i=1; i <= B; i++)
 				put(CP[cols(CP)], Nboot, (j, k, l+1))
 			}
 		}
-		mdstatsarr = mdarray((numoc, numsub, rows(combo)), .)
-		for (k = 1; k <= rows(combo); k++){
-			diff = get(meanboot, (.,.,combo[k,1]:+1)) - get(meanboot, (.,.,combo[k,2]:+1))
-			put(diff, diffboot, (.,.,k))
-			//(*(diffboot[.,.]))[.,.] = *meanboot[combo[.,1]+J(numpc,1,1),.] - *meanboot[combo[.,2]+J(numpc,1,1),.]
-
-			statsarr = (abs(get(diffboot, (.,.,k)) - get(diffact, (.,.,k))) :/ sqrt(get(varboot, (.,.,combo[k,1]:+1)) :/ get(Nboot, (.,.,combo[k,1]:+ 1)) ///
-				+ get(varboot, (.,.,combo[k,2]:+1)) :/ get(Nboot, (.,.,combo[k,2]:+1))))
-			//statsarr = (abs((*(diffboot[.,.]))[.,.]-(*(diffact[.,.]))[.,.]) :/ sqrt(*varboot[combo[.,1] + ones, .] :/ *Nboot[combo[.,1]+ ones,.] ///
-			//	+ *varboot[combo[.,2] + ones,.] :/ *Nboot[combo[.,2] + ones,.]))'
-			put(statsarr, mdstatsarr, (.,., k))
-		}
+	}
+	mdstatsarr = mdarray((numoc, numsub, rows(combo)), .)
+	for (k = 1; k <= rows(combo); k++){
+		diff = get(meanboot, (.,.,combo[k,1]:+1)) - get(meanboot, (.,.,combo[k,2]:+1))
+		put(diff, diffboot, (.,.,k))
+		statsarr = (abs(get(diffboot, (.,.,k)) - get(diffact, (.,.,k)))) :/ sqrt(get(varboot, (.,.,combo[k,1]:+1)) :/ get(Nboot, (.,.,combo[k,1]:+ 1)) ///
+			+ get(varboot, (.,.,combo[k,2]:+1)) :/ get(Nboot, (.,.,combo[k,2]:+1)))
+		put(statsarr, mdstatsarr, (.,., k))
+	}
+	for (ll=1; ll<=numpc; ll++){
 		for (kk=1; kk<=numsub; kk++){
-			for (ll=1; ll<=numpc; ll++){
-				(*(statsboot[kk,ll]))[i,.] = get(mdstatsarr, (.,.,ll))'[kk,.]
-			}
+			(*(statsboot[kk,ll]))[i,.] = get(mdstatsarr, (.,.,ll))'[kk,.]
 		}
 	}
 }
@@ -189,11 +217,11 @@ for (i=1; i<=numoc; i++)
 	{
 		for (k=1; k<=numpc; k++)
 		{
-			p =	1 - sum(get(statsboot,(.,i,j,k)) :>= get(statsact, (i,j,k)) * J(B,1,1)) / B
+			p = 1 - (sum(get(statsboot,(.,i,j,k)) :>= get(statsact, (i,j,k)) * J(B,1,1))) / B
 			put(p, pact, (i,j,k))
 			for (l=1; l<=B; l++)
 			{
-				sp = 1 - sum(get(statsboot, (.,i,j,k)) :>= get(statsboot, (l,i,j,k)) * J(B,1,1)) / B;
+				sp = 1 - (sum(get(statsboot, (.,i,j,k)) :>= get(statsboot, (l,i,j,k)) * J(B,1,1))) / B;
 				put(sp, pboot, (l,i,j,k))
 			}
 		}
@@ -214,9 +242,12 @@ for (i=1; i<=numoc; i++)
 			ptemp =  get(pboot, (.,i,j,k))
 			sortp = sort(ptemp, -1)
 			v = (get(pact, (i,j,k)) * J(B,1,1 )) :>= sortp
-			indx=NULL; where=NULL;
-			minindex(v, 1, indx, where)
-			q = indx[rows(indx),1]/B
+			indx = find(v)
+			if (indx == NULL) {
+			    q = 1
+			}else{
+			    q = indx/B
+			}
 			put(q, alphasin, (i,j,k))
 		}
 	}
@@ -263,8 +294,12 @@ for (i=1; i<=nh; i++)
 	sortmaxstats = sort(maxstats', -1)'
 	indx=NULL; where=NULL;
 	v = statsrank[i, 8] :>= sortmaxstats
-	minindex(v, 1, indx, where)
-	q = indx[rows(indx),1]/B
+	indx = find(v)
+	if (indx == NULL){
+	    q = 1
+	}else{
+	    q = indx/B
+	}
 	alphamul[i] = q
 	if (i==1) alphamulm=alphamul[i]
 	else sortmaxstatsm=J(1,B,0)
