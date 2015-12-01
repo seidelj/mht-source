@@ -74,15 +74,35 @@ function get(x, rowvec)
 
 function nchoosek(V, K)
 {
-    // Creates a N!/K!(N-K)! by K array where N = length of colvector b
-    // of all unique combinatons of length K found on V.
-    A = NULL
-    for (i=1; i<=cols(V); i++){
-        for (j = i+1; j <= cols(V); j++){
-            if (A == NULL) A = (V[1,i], V[1,j])
-            else A = A \ (V[1,i], V[1,j])
+    A = J(comb(rows(V), K), K, .)
+    com = J(100, 1, .)
+    n = rows(V)
+    for (i = 1; i <= K; i++)
+    {
+        com[i] = i
+    }
+    indx = 1
+    while (com[K] <= n ){
+        for (i = 1; i <= K; i++)
+        {
+            //printf("%f ", com[i])
+            A[indx,i] = com[i]
+        }
+        indx = indx+1
+        //printf("\n")
+
+        t = K
+        while (t != 1 && com[t] == n - K + t)
+        {
+            t = t - 1
+        }
+        com[t] = com[t] + 1;
+        for (i = t +1; i <= K; i++)
+        {
+            com[i] = com[i-1] + 1
         }
     }
+
     return(A)
 }
 
@@ -92,12 +112,12 @@ function find(V)
     indx = NULL
     for (i=1; i <= rows(V); i++){
 	if (V[i] != 0){
-	    indx = i 
+	    indx = i
 	    break
 	}
     }
-    
-    return(indx) 
+
+    return(indx)
 }
 
 //function listetal(Y, sub, D, combo, select ){
@@ -301,16 +321,24 @@ for (i=1; i<=nh; i++)
 	    q = indx/B
 	}
 	alphamul[i] = q
-	if (i==1) alphamulm=alphamul[i]
-	else sortmaxstatsm=J(1,B,0)
-
-/*
-Lines 151-215 in lismtetal.m that calculate alpahmu
-	for (j=nh-i+1; j >= 1; j--)
+	if (i==1){
+		alphamulm=alphamul[i]
+	}else{
+		sortmaxstatsm=J(1,B,0)
+		for (j=nh-i+1; j >= 1; j--)
 		{
-			//subset = nchoosek(statsrank[(i::rows(statsrank)), 1], j)
+			subset = nchoosek(statsrank[(i::rows(statsrank)), 1], j)
+			sumcont = 0
+			for (k=1; k<=rows(subset); k++ ){
+				cont = 0
+				for (l=1; l <= i-1; l++)
+				{
+					tempCompare = statsall[(subset[k,.]), 2..3)]' :== statsrank[l, (2..3)]' 
+					sameocsub = subset
+				}
+			}
 		}
-*/
+	}
 
 }
 

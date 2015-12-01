@@ -14,6 +14,39 @@ function nchoosek(V, K)
     return(A)
 }
 
+function nchoosek(V, K)
+{
+    A = J(comb(rows(V), K), K, .)
+    com = J(100, 1, .)
+    n = rows(V)
+    for (i = 1; i <= K; i++)
+    {
+        com[i] = i
+    }
+    indx = 1
+    while (com[K] <= n ){
+        for (i = 1; i <= K; i++)
+        {
+            printf("%f ", com[i])
+            A[indx,i] = com[i]
+        }
+        indx = indx+1
+        printf("\n")
+
+        t = K
+        while (t != 1 && com[t] == n - K + t)
+        {
+            t = t - 1
+        }
+        com[t] = com[t] + 1;
+        for (i = t +1; i <= K; i++)
+        {
+            com[i] = com[i-1] + 1
+        }
+    }
+
+    return(A)
+}
 
 
 function find(V)
@@ -22,12 +55,12 @@ function find(V)
     indx = NULL
     for (i=1; i <= rows(V); i++){
 	if (V[i] != 0){
-	    indx = i 
+	    indx = i
 	    break
 	}
     }
-    
-    return(indx) 
+
+    return(indx)
 }
 
 
