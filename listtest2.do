@@ -86,7 +86,7 @@ function nchoosek(V, K)
         for (i = 1; i <= K; i++)
         {
             //printf("%f ", com[i])
-            A[indx,i] = com[i]
+            A[indx,i] = V[com[i]]
         }
         indx = indx+1
         //printf("\n")
@@ -322,7 +322,7 @@ for (i=1; i<=nh; i++)
 	}
 	alphamul[i] = q
 	if (i==1){
-		alphamulm=alphamul[i]
+		alphamulm[i]=alphamul[i]
 	}else{
 		sortmaxstatsm=J(1,B,0)
 		for (j=nh-i+1; j >= 1; j--)
@@ -333,7 +333,7 @@ for (i=1; i<=nh; i++)
 				cont = 0
 				for (l=1; l <= i-1; l++)
 				{
-					tempCompare = statsall[(subset[k,.]), 2..3)]' :== statsrank[l, (2..3)]' 
+					tempCompare = statsall[(subset[k,.]), (2..3)] :== statsrank[l, (2..3)]
 					sameocsub = subset
 				}
 			}
