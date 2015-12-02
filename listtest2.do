@@ -16,109 +16,14 @@ clear
 
 insheet using data.csv, comma names
 
-
-
 //Creating outcome variable
 gen amountmat = amount * ratio
 egen groupids = group(redcty red0)
 cd
 cd mht
+do functions
 mata:
-function mdarray( rowvec , fill)
-{
-	// rowvec = (i, j, k..[l])
-	if (cols(rowvec) == 3) c_l = 1
-	else c_l = rowvec[1,4]
-	r_k = rowvec[1,3]
 
-
-	a = J(r_k,c_l,NULL)
-	for (k=1; k<=rows(a); k++)
-	{
-		for (l=1; l<=cols(a); l++)
-		{
-			a[k,l] = &J(rowvec[1,1],rowvec[1,2],fill)
-		}
-	}
-	return(a)
-}
-
-function put(val,x, rowvec)
-{
-	/* Usage: value to put, matrix to put it in, i,j of dimension k, to put it at.*/
-
-	//rowvec = (i,j,k, [l])
-	if (cols(rowvec)== 3) c_l = 1
-	else c_l = rowvec[1,4]
-	r_k = rowvec[1,3]
-	i = rowvec[1,1]
-	j = rowvec[1,2]
-
-	(*(x[r_k,c_l]))[i,j]=val
-}
-
-function get(x, rowvec)
-{
-	/* Usage: matrix to get from, i,j of dimension k, of value to get. */
-
-	//rowvec = (i,j,k, [l])
-	if (cols(rowvec)== 3) c_l = 1
-	else c_l = rowvec[1,4]
-	r_k = rowvec[1,3]
-	i = rowvec[1,1]
-	j = rowvec[1,2]
-
-	return((*(x[r_k,c_l]))[i,j])
-}
-
-
-function nchoosek(V, K)
-{
-    A = J(comb(rows(V), K), K, .)
-    com = J(100, 1, .)
-    n = rows(V)
-    for (i = 1; i <= K; i++)
-    {
-        com[i] = i
-    }
-    indx = 1
-    while (com[K] <= n ){
-        for (i = 1; i <= K; i++)
-        {
-            //printf("%f ", com[i])
-            A[indx,i] = V[com[i]]
-        }
-        indx = indx+1
-        //printf("\n")
-
-        t = K
-        while (t != 1 && com[t] == n - K + t)
-        {
-            t = t - 1
-        }
-        com[t] = com[t] + 1;
-        for (i = t +1; i <= K; i++)
-        {
-            com[i] = com[i-1] + 1
-        }
-    }
-
-    return(A)
-}
-
-function find(V)
-{
-    // FInds the first nonzero index of a col vector V
-    indx = NULL
-    for (i=1; i <= rows(V); i++){
-	if (V[i] != 0){
-	    indx = i
-	    break
-	}
-    }
-
-    return(indx)
-}
 
 //function listetal(Y, sub, D, combo, select ){
 // Parameters for the listetal. ex.5
@@ -312,7 +217,6 @@ for (i=1; i<=nh; i++)
 {
 	maxstats = colmax(statsrank[(i::rows(statsrank)), (9::cols(statsrank))]) // the maxiums of the 1-p values among all the remaining hypotheses for all the simulated samples
 	sortmaxstats = sort(maxstats', -1)'
-	indx=NULL; where=NULL;
 	v = statsrank[i, 8] :>= sortmaxstats
 	indx = find(v)
 	if (indx == NULL){
@@ -333,13 +237,16 @@ for (i=1; i<=nh; i++)
 				cont = 0
 				for (l=1; l <= i-1; l++)
 				{
-					tempCompare = statsall[(subset[k,.]), (2..3)] :== statsrank[l, (2..3)]
-					sameocsub = subset
+					tempA = statsall[(subset[k,.]), (2..3)]
+					tempB = J(rows(tempA), 1, statsrank[l, (2..3)] )
+					sameocsub = select(subset[k,.], (ismember(tempA, tempB,1)'))
+					cells = statsall[(sameocsub), (4..5)], J(1, size(sameoc))
+					tran = asarray_create(keytype="real")
+					asarray(tran)
 				}
 			}
 		}
 	}
-
 }
 
 bon = rowmin((statsrank[.,7]*nh, J(nh,1,1) ))

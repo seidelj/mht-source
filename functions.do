@@ -123,4 +123,25 @@ real matrix function ismember(real matrix A, real matrix B, real scalar r){
 }
 mata mosave ismember(), dir(functions) replace
 
+function mat2cell(A, rowD, colD){
+	/// the sum of rowD must equal the rows(A)
+	/// the sum of colD must equal cols(A)
+	rowcount = 1
+	colcount = 1
+	matcell = asarray_create("real", 2)
+	for (i = 1; i <= cols(rowD); i++){
+		for (j = 1; j <= cols(colD); j++){
+			cell = A[rowcount::rowcount + rowD[i]-1, colcount..colcount + colD[j] -1]
+			asarray(matcell, (i,j), cell)
+			colcount = cols(cell) + 1
+		}
+		colcount = 1
+		rowcount =  1 + rows(cell)
+	}
+
+	return(matcell)
+}
+
+
+
 end
