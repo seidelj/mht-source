@@ -43,7 +43,7 @@ select = mdarray((numoc, numsub, numpc), 1)
 
 //Parameters set by the function
 n = rows(Y)
-B = 3000
+B = 20
 numoc = cols(Y)
 numsub = rows(uniqrows(sub))
 numg=rows(uniqrows(D)) - 1
@@ -240,19 +240,74 @@ for (i=1; i<=nh; i++)
 					tempA = statsall[(subset[k,.]), (2..3)]
 					tempB = J(rows(tempA), 1, statsrank[l, (2..3)] )
 					sameocsub = select(subset[k,.], (ismember(tempA, tempB,1)'))
-					cells = statsall[(sameocsub), (4..5)], J(1, size(sameoc))
-					tran = asarray_create(keytype="real")
-					asarray(tran)
+					if (cols(sameocsub) >= 1){
+						tran = mat2cell(statsall[(sameocsub), (4..5)], J(1, cols(sameocsub),1) , 2)
+						trantemp=tran
+					}else{}
+					if (cols(sameocsub) <= 1){
+						cont = 0
+						maxstatsm = colmax(statsall[(subset[k,.]), (9..cols(statsall))])
+						sortmaxstatsm = colmax(sortmaxstatsm \ sort(maxstatsm', -1)')
+						break
+					}else{
+						counter = 1
+						while ( max(asarray_keys(tran)[.,1]) > max(asarray_keys(trantemp)[.,1]) || counter == 1 ){
+							tran=trantemp
+							trantemp = asarray_create("real", 2)
+							asarray(trantemp, (1,1), asarray(tran, (1,1)))
+							counter=counter + 1
+							for (m=2; m<=max(asarray_keys(tran)[.,1]); m++){
+								belong = 0
+								for (n=1; n <= max(asarray_keys(trantemp)[.,1]); n++){
+									trantempn = asarray(trantemp, (n,1))
+									tranm = asarray(tran, (m,1))
+									unq = uniqrows( (trantempn, tranm)' )'
+									test = unq :< cols(trantempn) + cols(tranm)
+									if (sum(test) == cols(unq)){
+										asarray(trantemp, (n,1), unq)
+										belong = belong+1
+										if (n==max(asarray_keys(trantemp)[.,1]) && belong ==0){
+											asarray(trantemp, n+1, tranm)
+										}
+									}
+								}
+							}
+						}
+						for (p=1; p<=max(asarray_keys(tran)[.,1]); p++){
+							if (sum(ismember(statsrank[l, (4..5)], asarray(tran, (p,1)), 2)) == 2){
+								cont=1
+								break
+							}
+						}
+					}
+					if (cont==1){
+						break
+					}
+				}
+				sumcont=sumcont+cont
+				if (cont==0){
+					maxstatsm = colmax(statsall[(subset[k,.]), (9..cols(statsall))])
+					sortmaxstatsm = colmax(sortmaxstatsm \ sort(maxstatsm', -1)')
 				}
 			}
+			if (sumcont==0){
+				break;
+			}
 		}
+		indx = find(statsrank[i,8] :>= sortmaxstatsm)
+		if (indx == NULL){
+			qm = 1
+		}else{
+			qm = indx/B
+		}
+		alphamulm[i] = qm
 	}
 }
 
 bon = rowmin((statsrank[.,7]*nh, J(nh,1,1) ))
 holm = rowmin((statsrank[.,7]:*(nh::1), J(nh,1,1)))
 
-output = sort((statsrank[.,(1::7)], bon, holm),1)
+output = sort((statsrank[.,(1::7)], alphamul, alphamulm, bon, holm),1)
 output = output[., (2::cols(output))]
 headers = ("outcome","subgroup","treatment1","treatment2","diff_in_means","single_testing","Bonf","Holm")
 

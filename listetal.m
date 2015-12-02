@@ -26,7 +26,7 @@ function [output]=listetal(Y,sub,D,combo,select)
 % the 10th column presents p-values based on the Holm's method.
 
 n=size(Y,1); % the number of units
-B=3000;        % the number of simulated samples
+B=20;        % the number of simulated samples
 numoc=size(Y,2); % the number of outcomes
 numsub=size(unique(sub),1); % the number of subgroups
 numg=size(unique(D),1)-1;  % the number of treatment groups (not including the control group)

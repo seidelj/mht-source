@@ -88,11 +88,16 @@ function nchoosek(V, K)
 mata mosave nchoosek(), dir(functions) replace
 
 
-function find(V)
+transmorphic scalar function find(transmorphic vector V)
 {
     // FInds the first nonzero index of a col vector V
     indx = NULL
-    for (i=1; i <= rows(V); i++){
+	if (rows(V) <= 1){
+		counter = cols(V)
+	}else{
+		counter = rows(V)
+	}
+    for (i=1; i <= counter; i++){
 	if (V[i] != 0){
 	    indx = i
 	    break
@@ -141,7 +146,6 @@ function mat2cell(A, rowD, colD){
 
 	return(matcell)
 }
-
-
+mata mosave ismember(), dir(functions) replace
 
 end
