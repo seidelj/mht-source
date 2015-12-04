@@ -216,7 +216,7 @@ alphamulm = J(nh, 1, 0) // the smallest alpha's that reject the hypothesis based
 
 for (i=1; i<=nh; i++)
 {
-	maxstats = colmax(statsrank[(i::rows(statsrank)), (9::cols(statsrank))]) 
+	maxstats = colmax(statsrank[(i::rows(statsrank)), (9::cols(statsrank))])
 	sortmaxstats = sort(maxstats', -1)'
 	v = statsrank[i, 8] :>= sortmaxstats
 	indx = find(v)
@@ -310,7 +310,7 @@ holm = rowmin((statsrank[.,7]:*(nh::1), J(nh,1,1)))
 
 output = sort((statsrank[.,(1::7)], alphamul, alphamulm, bon, holm),1)
 output = output[., (2::cols(output))]
-headers = ("outcome","subgroup","treatment1","treatment2","diff_in_means","single_testing","Thm2_2", "Remark2_1", "Bonf","Holm")
+headers = ("outcome","subgroup","treatment1","treatment2","diff_in_means","Remark3_1","Thm3_1", "Remark3_7", "Bonf","Holm")
 blanks = J(cols(headers), 1, "")
 
 headersmatrix = (blanks, headers')

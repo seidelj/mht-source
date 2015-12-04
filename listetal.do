@@ -55,7 +55,7 @@ for (i=1; i <=rows(combo); i++){
 */
 
 rseed(0)
-idboot =  floor(runiform(n,  B, 1, n+1))
+idboot = runiformint(n, B, 1, n)
 statsboot= mdarray((B, numoc, numsub, numpc), 0)
 meanboot = mdarray((numoc, numsub, numg+1), 0)
 varboot = mdarray((numoc, numsub, numg+1), 0)
@@ -272,7 +272,7 @@ holm = rowmin((statsrank[.,7]:*(nh::1), J(nh,1,1)))
 
 output = sort((statsrank[.,(1::7)], alphamul, alphamulm, bon, holm),1)
 output = output[., (2::cols(output))]
-headers = ("outcome","subgroup","treatment1","treatment2","diff_in_means","single_testing","Thm2_2", "Remark2_1", "Bonf","Holm")
+headers = ("outcome","subgroup","treatment1","treatment2","diff_in_means","Remark3_1","Thm3_1", "Remark3_7", "Bonf","Holm")
 blanks = J(cols(headers), 1, "")
 
 headersmatrix = (blanks, headers')
