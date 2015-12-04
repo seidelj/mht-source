@@ -37,13 +37,14 @@ sub = matsub
 numoc = cols(Y)
 numsub = rows(uniqrows(sub))
 numg=rows(uniqrows(D)) -1
-combo = (J(numg,1,0), (1::numg))
+//combo = (J(numg,1,0), (1::numg))
+combo = nchoosek((0::numg), 2)
 numpc=rows(combo)
 select = mdarray((numoc, numsub, numpc), 1)
 
 //Parameters set by the function
 n = rows(Y)
-B = 20
+B = 3000
 numoc = cols(Y)
 numsub = rows(uniqrows(sub))
 numg=rows(uniqrows(D)) - 1
@@ -215,7 +216,7 @@ alphamulm = J(nh, 1, 0) // the smallest alpha's that reject the hypothesis based
 
 for (i=1; i<=nh; i++)
 {
-	maxstats = colmax(statsrank[(i::rows(statsrank)), (9::cols(statsrank))]) // the maxiums of the 1-p values among all the remaining hypotheses for all the simulated samples
+	maxstats = colmax(statsrank[(i::rows(statsrank)), (9::cols(statsrank))]) 
 	sortmaxstats = sort(maxstats', -1)'
 	v = statsrank[i, 8] :>= sortmaxstats
 	indx = find(v)
@@ -243,10 +244,10 @@ for (i=1; i<=nh; i++)
 					if (cols(sameocsub) >= 1){
 						tran = mat2cell(statsall[(sameocsub), (4..5)], J(1, cols(sameocsub),1) , 2)
 						trantemp=tran
-					}else{}
+					}
 					if (cols(sameocsub) <= 1){
 						cont = 0
-						maxstatsm = colmax(statsall[(subset[k,.]), (9..cols(statsall))])
+						maxstatsm = colmax(statsall[(subset[k,.]), (9::cols(statsall))])
 						sortmaxstatsm = colmax(sortmaxstatsm \ sort(maxstatsm', -1)')
 						break
 					}else{
@@ -267,7 +268,7 @@ for (i=1; i<=nh; i++)
 										asarray(trantemp, (n,1), unq)
 										belong = belong+1
 										if (n==max(asarray_keys(trantemp)[.,1]) && belong ==0){
-											asarray(trantemp, n+1, tranm)
+											asarray(trantemp, (n+1,1), tranm)
 										}
 									}
 								}
@@ -286,7 +287,7 @@ for (i=1; i<=nh; i++)
 				}
 				sumcont=sumcont+cont
 				if (cont==0){
-					maxstatsm = colmax(statsall[(subset[k,.]), (9..cols(statsall))])
+					maxstatsm = colmax(statsall[(subset[k,.]), (9::cols(statsall))])
 					sortmaxstatsm = colmax(sortmaxstatsm \ sort(maxstatsm', -1)')
 				}
 			}
@@ -309,9 +310,13 @@ holm = rowmin((statsrank[.,7]:*(nh::1), J(nh,1,1)))
 
 output = sort((statsrank[.,(1::7)], alphamul, alphamulm, bon, holm),1)
 output = output[., (2::cols(output))]
-headers = ("outcome","subgroup","treatment1","treatment2","diff_in_means","single_testing","Bonf","Holm")
+headers = ("outcome","subgroup","treatment1","treatment2","diff_in_means","single_testing","Thm2_2", "Remark2_1", "Bonf","Holm")
+blanks = J(cols(headers), 1, "")
 
-
+headersmatrix = (blanks, headers')
+mht = output
+st_matrix("mht", mht)
+st_matrixcolstripe("mht", headersmatrix)
 
 end
 

@@ -112,7 +112,8 @@ real matrix function ismember(real matrix A, real matrix B, real scalar r){
     //For array and A and B of same number of cols
     //returns an array of the same size as
     // A where A is in B = 1 0 otherwise
-    // r == 1 compares rows.  If r == 0 it will return (rows(A), cols(A))
+    // r == 1 compares rows.  If r == 0, then A and B should be rowvectors and it will return
+	// it will return (1 x cols(A)) or cols(B)) whichever is smaller
     // where result[i,j] = 1 if A[i,j] == B[i,j] else 0
     // NOTE: r==1 is only supported when A and B are same size
     if (r == 1){
@@ -122,15 +123,30 @@ real matrix function ismember(real matrix A, real matrix B, real scalar r){
             else res[i] = 0
         }
     }else{
-        res = A :== B[., (1..cols(A))]
+		if (cols(A) < cols(B)){
+			small = A
+			large = B
+		}else{
+			small = B
+			large = A
+		}
+		res = J(cols(small), 1, .)
+		for (i = 1; i <= cols(small); i++){
+			test = small[i] :== large
+			if (sum(test) >= 1 ){
+				res[i] = 1
+			}else{
+				res[i] = 0
+			}
+		}
     }
     return(res)
 }
 mata mosave ismember(), dir(functions) replace
 
 function mat2cell(A, rowD, colD){
-	/// the sum of rowD must equal the rows(A)
-	/// the sum of colD must equal cols(A)
+	/// the sum of rowD must equal the cols(A)
+	/// the sum of colD must equal rows(A)
 	rowcount = 1
 	colcount = 1
 	matcell = asarray_create("real", 2)
@@ -141,11 +157,11 @@ function mat2cell(A, rowD, colD){
 			colcount = cols(cell) + 1
 		}
 		colcount = 1
-		rowcount =  1 + rows(cell)
+		rowcount = rowcount + rows(cell)
 	}
 
 	return(matcell)
 }
-mata mosave ismember(), dir(functions) replace
+mata mosave mat2cell(), dir(functions) replace
 
 end
