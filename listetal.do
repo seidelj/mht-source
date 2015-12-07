@@ -9,7 +9,7 @@ function listetal(Y, sub, D, combo, select ){
 n = rows(Y)
 B = 3000
 numoc = cols(Y)
-numsub = rows(uniqrows(sub))
+numsub = colnonmissing(uniqrows(sub)) 
 numg=rows(uniqrows(D)) - 1
 numpc=rows(combo)
 

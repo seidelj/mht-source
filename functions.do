@@ -164,4 +164,14 @@ function mat2cell(A, rowD, colD){
 }
 mata mosave mat2cell(), dir(functions) replace
 
+void function buildoutput(string scalar name, real matrix output){
+    headers = ("outcome","subgroup","treatment1","treatment2","diff_in_means","Remark3_1","Thm3_1", "Remark3_7", "Bonf","Holm")
+    blanks = J(cols(headers), 1, "")
+
+    headersmatrix = (blanks, headers')
+    st_matrix(name, output)
+    st_matrixcolstripe(name, headersmatrix)
+}
+mata mosave buildoutput(), dir(functions) replace
+
 end
