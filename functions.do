@@ -1,4 +1,3 @@
-
 mata:
 
 function mdarray( rowvec , fill)
@@ -19,7 +18,6 @@ function mdarray( rowvec , fill)
 	}
 	return(a)
 }
-mata mosave mdarray(), dir(functions) replace
 
 function put(val,x, rowvec)
 {
@@ -34,7 +32,6 @@ function put(val,x, rowvec)
 
 	(*(x[r_k,c_l]))[i,j]=val
 }
-mata mosave put(), dir(functions) replace
 
 function get(x, rowvec)
 {
@@ -49,8 +46,6 @@ function get(x, rowvec)
 
 	return((*(x[r_k,c_l]))[i,j])
 }
-mata mosave get(), dir(functions) replace
-
 
 function nchoosek(V, K)
 {
@@ -85,8 +80,6 @@ function nchoosek(V, K)
 
     return(A)
 }
-mata mosave nchoosek(), dir(functions) replace
-
 
 transmorphic scalar function find(transmorphic vector V)
 {
@@ -106,7 +99,6 @@ transmorphic scalar function find(transmorphic vector V)
 
     return(indx)
 }
-mata mosave find(), dir(functions) replace
 
 real matrix function ismember(real matrix A, real matrix B, real scalar r){
     //For array and A and B of same number of cols
@@ -142,7 +134,6 @@ real matrix function ismember(real matrix A, real matrix B, real scalar r){
     }
     return(res)
 }
-mata mosave ismember(), dir(functions) replace
 
 function mat2cell(A, rowD, colD){
 	/// the sum of rowD must equal the cols(A)
@@ -162,7 +153,6 @@ function mat2cell(A, rowD, colD){
 
 	return(matcell)
 }
-mata mosave mat2cell(), dir(functions) replace
 
 void function buildoutput(string scalar name, real matrix output){
     headers = ("outcome","subgroup","treatment1","treatment2","diff_in_means","Remark3_1","Thm3_1", "Remark3_7", "Bonf","Holm")
@@ -172,6 +162,5 @@ void function buildoutput(string scalar name, real matrix output){
     st_matrix(name, output)
     st_matrixcolstripe(name, headersmatrix)
 }
-mata mosave buildoutput(), dir(functions) replace
 
 end

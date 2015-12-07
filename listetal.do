@@ -9,7 +9,7 @@ function listetal(Y, sub, D, combo, select ){
 n = rows(Y)
 B = 3000
 numoc = cols(Y)
-numsub = colnonmissing(uniqrows(sub)) 
+numsub = colnonmissing(uniqrows(sub))
 numg=rows(uniqrows(D)) - 1
 numpc=rows(combo)
 
@@ -272,16 +272,9 @@ holm = rowmin((statsrank[.,7]:*(nh::1), J(nh,1,1)))
 
 output = sort((statsrank[.,(1::7)], alphamul, alphamulm, bon, holm),1)
 output = output[., (2::cols(output))]
-headers = ("outcome","subgroup","treatment1","treatment2","diff_in_means","Remark3_1","Thm3_1", "Remark3_7", "Bonf","Holm")
-blanks = J(cols(headers), 1, "")
-
-headersmatrix = (blanks, headers')
-output = output
-
 
 return(output)
-}
 
-mata mosave listetal(), dir(functions) replace
+}
 
 end

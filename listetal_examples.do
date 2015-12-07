@@ -1,19 +1,62 @@
 clear all
 cd "/home/joseph/mht/data"
 insheet using data.csv, comma names
-
 //Creating outcome variable
 gen amountmat = amount * ratio
-//Creating group variable for sub
-gen groupids = (redcty==1 & red0 == 1) + (redcty==0 & red0 == 1)*2 + (redcty==0 & red0 == 0)*3 + (redcty==1 & red0 == 0)*4
-replace groupids = . if groupids == 0
 
 cd
 cd mht
 
+/// syntax
+/// listetal outcomes subgroup treatment combo select
+/// where
+/// outcomes = a string of variable names
+/// subgroup = variable name containg group id
+/// treatment = a string of treatment variable names"
+/// combo = treatmentcontrol or pairwise
+/// select = integer [1-4]
+***     1: all  numoc*numsub*numpc
+***     2:      numoc*numsub
+***     3:      numoc*numpc
+***     4:      numsub * numpc
+
+// example 1
+//Creating group variable
+gen groupid = 1
+listetal "gave amount amountmat amountchange" groupid "treatment" "treatmentcontrol" 1
+
+/*
+
+//example 2
+//create group variable of id's according
+drop groupid
+gen groupid = (redcty==1 & red0 == 1) + (redcty==0 & red0 == 1)*2 + (redcty==0 & red0 == 0)*3 + (redcty==1 & red0 == 0)*4
+replace groupid = . if groupid == 0
+listetall "gave" groupid "treatment" "treatmentcontrol" 1
+
+//example 3
+drop groupid
+gen groupid = 1
+listetal "amount" groupid "ratio" "treatmentcontrol" 1
+
+//example 4
+listetal "amount" groupid "ratio" "pairwise" 1
+
+//example 5
+drop groupid
+gen groupid = (redcty==1 & red0 == 1) + (redcty==0 & red0 == 1)*2 + (redcty==0 & red0 == 0)*3 + (redcty==1 & red0 == 0)*4
+replace groupid = . if groupid == 0
+listetal "gave amount amountmat amountchange" groupid "treatment" "treatmentcontrol" 1
+
+/* THE CODE BELOW CAN BE INGORED.  IT WILL BE REMOVED IN THE FUTRE
+** IT IS CURRENTLY JUST FOR MY REFERENCE AS I TRANSITION TO A FUNCTIONAL
+** ADO file
+*/
+
+/*
 do functions
 do listetal
-
+/*
 mata:
 /*
 /* example 1 */
