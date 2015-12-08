@@ -10,7 +10,7 @@ Make sure your current directory contains
 See listetal_examples.do for usage example OR from stata termanal type 'help listetal'
 
 
-##Summary of contents
+####Summary of contents
 The matlab directory contains the original matlab code for the procedure provided by Yang.  Anyone interested in using this should be warned that missing values in the "D" parameter of the functions need to be thought through carefully
 
 The data directory contains the data set used in the List et al 2015 paper.
