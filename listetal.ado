@@ -18,7 +18,7 @@ program listetal
     mata: sizes = buildsizes(Y, D, sub)
     mata: combo = buildcombo("`combo'", sizes[3])
     mata: numpc = buildnumpc(combo)
-    mata: select = buildselect(`select', sizes[1], sizes[2], sizes[3])
+    mata: select = buildselect(`select', sizes[1], sizes[2], numpc)
     mata: results = listetal(Y, sub, D, combo, select)
     mata: buildoutput("results", results)
 
