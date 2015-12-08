@@ -20,25 +20,23 @@ cd mht
 ***     3:      numoc*numpc
 ***     4:      numsub * numpc
 
+/*
 // example 1
 //Creating group variable
-gen groupid = 1
-listetal "gave amount amountmat amountchange" groupid "treatment" "treatmentcontrol" 1
+listetal gave amount amountmat amountchange, treatment(treatment)
 
-/*
 
 //example 2
 //create group variable of id's according
-drop groupid
 gen groupid = (redcty==1 & red0 == 1) + (redcty==0 & red0 == 1)*2 + (redcty==0 & red0 == 0)*3 + (redcty==1 & red0 == 0)*4
 replace groupid = . if groupid == 0
-listetall "gave" groupid "treatment" "treatmentcontrol" 1
+listetal gave, treatment(treatment) subgroup(groupid)
 
+*/
 //example 3
-drop groupid
-gen groupid = 1
-listetal "amount" groupid "ratio" "treatmentcontrol" 1
+listetal amount, treatment(ratio) 
 
+/*
 //example 4
 listetal "amount" groupid "ratio" "pairwise" 1
 
