@@ -1,5 +1,5 @@
 #Multiple Hypothesis Testing
-Stata code for procedure detailed in List, Shaikh, Xu 2015 for Stata.
+Stata code for procedure detailed in List, Shaikh, Xu 2015
 
 ##In stata make sure your cd contains
 * listetal.ado -- this contains the stata comand 
