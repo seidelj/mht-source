@@ -12,10 +12,10 @@ cd mht
 /// listetal outcomes subgroup treatment combo select
 /// where
 /// outcomes = a string of variable names
-/// subgroup = variable name containg group id
+/// subgroup = variable name containg grousp id.  Optional
 /// treatment = a string of treatment variable names"
-/// combo = treatmentcontrol or pairwise
-/// select = integer [1-4]
+/// combo = treatmentcontrol or pairwise.  Optional, default = treatmentcontrol
+/// select = integer [1-4].  Optional, default = 1
 ***     1: all  numoc*numsub*numpc
 ***     2:      numoc*numsub
 ***     3:      numoc*numpc
