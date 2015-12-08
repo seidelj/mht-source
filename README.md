@@ -8,3 +8,11 @@ Make sure your current directory contains
 * listetal.do -- the actual program that performs computation
 
 See listetal_examples.do for usage example OR from stata termanal type 'help listetal'
+
+
+##Summary of contents
+The matlab directory contains the original matlab code for the procedure provided by Yang.  Anyone interested in using this should be warned that missing values in the "D" parameter of the functions need to be thought through carefully
+
+The data directory contains the data set used in the List et al 2015 paper.
+
+stataoutput.csv are the tables that the stata procedure generates for the dataset in List et al 2015 
