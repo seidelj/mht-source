@@ -8,19 +8,10 @@ replace groupid = . if groupid == 0
 cd
 cd mht
 
-/// syntax
-/// listetal outcomes subgroup treatment combo select
-/// where
-/// outcomes = a string of variable names
-/// subgroup = variable name containg grousp id.  Optional
-/// treatment = a string of treatment variable names"
-/// combo = treatmentcontrol or pairwise.  Optional, default = treatmentcontrol
-/// select = integer [1-4].  Optional, default = 1
-***     1: all  numoc*numsub*numpc
-***     2:      numoc*numsub
-***     3:      numoc*numpc
-***     4:      numsub * numpc
+// help listetal
 
+
+/*
 // example 1
 listetal gave amount amountmat amountchange, treatment(treatment)
 

@@ -75,6 +75,13 @@ the default is {cmd:select(1)}; optional{p_end}
 {pstd}
 For detailed information on the procedure, see URL Multiple Hypothesis Testing in Experimental Economics.{p_end}
 
+{pstd}
+If you are running the command for the first time and receive an error message claiming certain functions are not found, ie nchoosek(), make sure that llistetal.mlib exists in your current dir and enter the command{p_end}
+{phang2}
+{cmd:. mata: mata mlib index}{p_end}
+{pstd}
+Which tells Stata to look in llistetal.mlib for mata functions that are required to run the command{p_end}
+
 {marker examples}{...}
 {title:Examples}
 {pstd}
