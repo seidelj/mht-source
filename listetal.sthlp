@@ -29,8 +29,8 @@
 {synopt:{opth subgroup(varname)}}group identifier variable {it:varname}{p_end}
 {synopt:{opth combo(string)}}compair "treatmentcontrol" or "pairwise"; default is
     {cmd:combo("treatmentcontrol")}{p_end}
-{synopt:{opt only(name)}} the numoc*numsub*numpc hypothesis to be tested; see for help {namelist}{p_end}
-{synopt:{opth exclude(name)}} The numoc*numsub*numpc hyptheisis not to be tested; see for help {namelist}{p_end}
+{synopt:{opth only(name)}} the numoc*numsub*numpc hypothesis to be tested{p_end}
+{synopt:{opth exclude(name)}} The numoc*numsub*numpc hyptheisis not to be tested{p_end}
 {synoptline}
 {p2colreset}{...}
 
