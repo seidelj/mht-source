@@ -6,19 +6,19 @@ function listetal(Y, sub, D, combo, select ){
 
 
 //Parameters set by the function
-n = rows(Y)
-B = 3000
-numoc = cols(Y)
-numsub = colnonmissing(uniqrows(sub))
-numg=rows(uniqrows(D)) - 1
-numpc=rows(combo)
+n = rows(Y)  //the number of units
+B = 3000 // number of simulated samples
+numoc = cols(Y) // number of outcomes
+numsub = colnonmissing(uniqrows(sub)) // number of subgroups
+numg=rows(uniqrows(D)) - 1 // the number of treatment groups (not including the control group)
+numpc=rows(combo) // the number of pairs of treament and control groups of interest
 
 // comput the studentized difference in means
 // for all the hypothises based on actual data
 
-meanact = mdarray((numoc, numsub, numg+1), 0)
-varact = mdarray((numoc, numsub, numg+1), 0)
-Nact= mdarray((numoc, numsub, numg+1), 0)
+meanact = mdarray((numoc, numsub, numg+1), 0) //sample means of the actual data for all Hypothesis
+varact = mdarray((numoc, numsub, numg+1), 0) // sample variances of the actual data for all H
+Nact= mdarray((numoc, numsub, numg+1), 0) // sample size of actual data for all H
 
 for (i=1; i <= numoc; i++)
 {
@@ -35,12 +35,11 @@ for (i=1; i <= numoc; i++)
 	}
 }
 
-diffact = mdarray((numoc, numsub, numpc), .)
-abdiffact = mdarray((numoc, numsub, numpc), .)
-statsact = mdarray((numoc, numsub, numpc), .)
+diffact = mdarray((numoc, numsub, numpc), .) //differences in sample means
+abdiffact = mdarray((numoc, numsub, numpc), .) //absolute value of diff in sample means
+statsact = mdarray((numoc, numsub, numpc), .) // studentized absolute difference in sample means
 
-// I have no idea what will happen when this ends up being a n-dimension matrix
-for (i=1; i <=rows(combo); i++){
+for (i=1; i <=numpc; i++){
 	diff = get(meanact, (.,.,combo[i,1]:+1)) - get(meanact, (.,.,combo[i,2]:+1))
 	put(diff, diffact, (.,.,i))
 	put(abs(diff), abdiffact, (.,.,i))
@@ -55,18 +54,18 @@ for (i=1; i <=rows(combo); i++){
 */
 
 rseed(0)
-idboot = runiformint(n, B, 1, n)
-statsboot= mdarray((B, numoc, numsub, numpc), 0)
-meanboot = mdarray((numoc, numsub, numg+1), 0)
-varboot = mdarray((numoc, numsub, numg+1), 0)
-Nboot = mdarray((numoc, numsub, numg+1), 0)
-diffboot = mdarray((numoc, numsub, numpc),.)
+idboot = runiformint(n, B, 1, n) // an n by B matrix of simulated samples of all the untis with replacement
+statsboot= mdarray((B, numoc, numsub, numpc), 0) // test statistics for all the simulated samples
+meanboot = mdarray((numoc, numsub, numg+1), 0) // samples means of the simulated sample for all H
+varboot = mdarray((numoc, numsub, numg+1), 0) // sample variance of the simulated sample for all H
+Nboot = mdarray((numoc, numsub, numg+1), 0) // sample sizes of simulated sample for all H
+diffboot = mdarray((numoc, numsub, numpc),.) // difference in means for each treatment control pairs
 
 for (i=1; i <= B; i++)
 {
-	Yboot = Y[idboot[.,i], .]
-	subboot = sub[idboot[.,i], .]
-	Dboot = D[idboot[.,i], .]
+	Yboot = Y[idboot[.,i], .] // all outcomes for ith simulated sample
+	subboot = sub[idboot[.,i], .] // all subgroup ids for the ith simulated sample
+	Dboot = D[idboot[.,i], .] // all treatment control status for the ith simulated sample
 	for (j=1; j <= numoc; j++)
 	{
 		for (k=1; k <= numsub; k++)
@@ -82,7 +81,7 @@ for (i=1; i <= B; i++)
 		}
 	}
 	mdstatsarr = mdarray((numoc, numsub, rows(combo)), .)
-	for (k = 1; k <= rows(combo); k++){
+	for (k = 1; k <= numpc; k++){
 		diff = get(meanboot, (.,.,combo[k,1]:+1)) - get(meanboot, (.,.,combo[k,2]:+1))
 		put(diff, diffboot, (.,.,k))
 		statsarr = (abs(get(diffboot, (.,.,k)) - get(diffact, (.,.,k)))) :/ sqrt(get(varboot, (.,.,combo[k,1]:+1)) :/ get(Nboot, (.,.,combo[k,1]:+ 1)) ///
@@ -119,7 +118,7 @@ for (i=1; i<=numoc; i++)
 
 /* calculate p-values based on single hypothesis testing */
 
-alphasin = mdarray((numoc, numsub, numpc), 0)
+alphasin = mdarray((numoc, numsub, numpc), 0) // the smalled alpha's that reject H based on single testing procedure (Remark 3.1)
 
 for (i=1; i<=numoc; i++)
 {
@@ -141,7 +140,7 @@ for (i=1; i<=numoc; i++)
 	}
 }
 
-psin = mdarray((numoc, numsub, numpc), 0) // p-values based on single hypothesis testing
+psin = mdarray((numoc, numsub, numpc), 0) // p-values based on single hypothesis testing (psin = alphasin)
 for (k=1; k<=numpc; k++){
 	put(get(alphasin, (.,.,k)), psin, (.,.,k))
 }
@@ -149,12 +148,18 @@ for (k=1; k<=numpc; k++){
 
 /* Calculate p-values based on multiple hypothesis tesitng */
 
-nh = 0
+nh = 0 // the number of hypothesis
 for (k=1; k <= numpc; k++)
 {
 	nh = nh + sum((*(select[k,.]))[.,.])
 }
 statsall = J(nh, 8+B, 0)
+// columns 1-5 present the id's of the hypotheses, outcomes, subgroups, and treatment (control) groups;
+// the 6th column shows the studentized differences in means for all the hypotheses based on the actual data
+// the 7th column presents p-values based on single hypothesis testing;
+// the 8th column presents 1-p values based on the actual data;
+// the subsequent columns present the corresponding 1-p values based on the simulated samples
+
 
 counter=1
 for (i=1; i<=numoc; i++)
@@ -178,7 +183,7 @@ alphamulm = J(nh, 1, 0) // the smallest alpha's that reject the hypothesis based
 
 for (i=1; i<=nh; i++)
 {
-	maxstats = colmax(statsrank[(i::rows(statsrank)), (9::cols(statsrank))])
+	maxstats = colmax(statsrank[(i::rows(statsrank)), (9::cols(statsrank))]) //maximums of 1-p values for all remaining H for all simulated samples
 	sortmaxstats = sort(maxstats', -1)'
 	v = statsrank[i, 8] :>= sortmaxstats
 	indx = find(v)
@@ -191,25 +196,25 @@ for (i=1; i<=nh; i++)
 	if (i==1){
 		alphamulm[i]=alphamul[i]
 	}else{
-		sortmaxstatsm=J(1,B,0)
+		sortmaxstatsm=J(1,B,0) // compute at each quantile the maximum of critical values for all the "true" subst of H
 		for (j=nh-i+1; j >= 1; j--)
 		{
-			subset = nchoosek(statsrank[(i::rows(statsrank)), 1], j)
-			sumcont = 0
+			subset = nchoosek(statsrank[(i::rows(statsrank)), 1], j) // all the subsets of H with j elements
+			sumcont = 0 // total number of subsets of H with j elements that contradict any of previously rejected H
 			for (k=1; k<=rows(subset); k++ ){
-				cont = 0
+				cont = 0 // cont = 1 if any of the previously rejected hypothesis contradicts the current subset of H
 				for (l=1; l <= i-1; l++)
 				{
 					tempA = statsall[(subset[k,.]), (2..3)]
 					tempB = J(rows(tempA), 1, statsrank[l, (2..3)] )
-					sameocsub = select(subset[k,.], (ismember(tempA, tempB,1)'))
+					sameocsub = select(subset[k,.], (ismember(tempA, tempB,1)')) // the H with same outcome as the lth H
 					if (cols(sameocsub) >= 1){
-						tran = mat2cell(statsall[(sameocsub), (4..5)], J(1, cols(sameocsub),1) , 2)
+						tran = mat2cell(statsall[(sameocsub), (4..5)], J(1, cols(sameocsub),1) , 2) // cell array that presents sets of equal treatment(control) groups implied by "transitivity" under the null H in sameocsub
 						trantemp=tran
 					}
 					if (cols(sameocsub) <= 1){
 						cont = 0
-						maxstatsm = colmax(statsall[(subset[k,.]), (9::cols(statsall))])
+						maxstatsm = colmax(statsall[(subset[k,.]), (9::cols(statsall))]) // maximums of the 1-p values within the subset of H for all the simulated samples
 						sortmaxstatsm = colmax(sortmaxstatsm \ sort(maxstatsm', -1)')
 						break
 					}else{
@@ -220,7 +225,7 @@ for (i=1; i<=nh; i++)
 							asarray(trantemp, (1,1), asarray(tran, (1,1)))
 							counter=counter + 1
 							for (m=2; m<=max(asarray_keys(tran)[.,1]); m++){
-								belong = 0
+								belong = 0 // total number of rows "transtemp" that "tranm" can be connected to by "transivity"
 								for (n=1; n <= max(asarray_keys(trantemp)[.,1]); n++){
 									trantempn = asarray(trantemp, (n,1))
 									tranm = asarray(tran, (m,1))
@@ -237,7 +242,7 @@ for (i=1; i<=nh; i++)
 							}
 						}
 						for (p=1; p<=max(asarray_keys(tran)[.,1]); p++){
-							if (sum(ismember(statsrank[l, (4..5)], asarray(tran, (p,1)), 2)) == 2){
+							if (sum(ismember(statsrank[l, (4..5)], asarray(tran, (p,1)), 2)) == 2){ // the lth previously rejected H contract the current subset of H
 								cont=1
 								break
 							}
@@ -254,7 +259,7 @@ for (i=1; i<=nh; i++)
 				}
 			}
 			if (sumcont==0){
-				break;
+				break; // if all the subsets of H with j elements do not contradict any of the previously rejected hypothesis, smaller subsets do not either
 			}
 		}
 		indx = find(statsrank[i,8] :>= sortmaxstatsm)
@@ -267,8 +272,8 @@ for (i=1; i<=nh; i++)
 	}
 }
 
-bon = rowmin((statsrank[.,7]*nh, J(nh,1,1) ))
-holm = rowmin((statsrank[.,7]:*(nh::1), J(nh,1,1)))
+bon = rowmin((statsrank[.,7]*nh, J(nh,1,1) )) // p-values based on the Bonferroni method
+holm = rowmin((statsrank[.,7]:*(nh::1), J(nh,1,1))) // p-values based on the Holm's method
 
 output = sort((statsrank[.,(1::7)], alphamul, alphamulm, bon, holm),1)
 output = output[., (2::cols(output))]

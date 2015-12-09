@@ -1,6 +1,6 @@
 mata:
 
-function mdarray( rowvec , fill)
+function mdarray(transmorphic rowvector rowvec , fill)
 {
 	// rowvec = (i, j, k..[l])
 	if (cols(rowvec) == 3) c_l = 1
@@ -19,7 +19,7 @@ function mdarray( rowvec , fill)
 	return(a)
 }
 
-function put(val,x, rowvec)
+function put(val,matrix x, rowvector rowvec)
 {
 	/* Usage: value to put, matrix to put it in, i,j of dimension k, to put it at.*/
 
@@ -33,7 +33,7 @@ function put(val,x, rowvec)
 	(*(x[r_k,c_l]))[i,j]=val
 }
 
-function get(x, rowvec)
+function get(matrix x, rowvector rowvec)
 {
 	/* Usage: matrix to get from, i,j of dimension k, of value to get. */
 
@@ -47,7 +47,7 @@ function get(x, rowvec)
 	return((*(x[r_k,c_l]))[i,j])
 }
 
-function nchoosek(V, K)
+function nchoosek(colvector V, real scalar K)
 {
     A = J(comb(rows(V), K), K, .)
     com = J(100, 1, .)
@@ -135,7 +135,7 @@ real matrix function ismember(real matrix A, real matrix B, real scalar r){
     return(res)
 }
 
-function mat2cell(A, rowD, colD){
+function mat2cell(transmorphic matrix A, transmorphic vector rowD, transmorphic vector colD){
 	/// the sum of rowD must equal the cols(A)
 	/// the sum of colD must equal rows(A)
 	rowcount = 1

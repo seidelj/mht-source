@@ -11,7 +11,7 @@ cd mht
 // help listetal
 
 
-/*
+
 // example 1
 listetal gave amount amountmat amountchange, treatment(treatment)
 
