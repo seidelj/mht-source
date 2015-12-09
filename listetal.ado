@@ -7,9 +7,6 @@ program listetal
         error
     }
 
-    //Load in required functions
-//    quietly: do functions
-//    quietly: do listetal
 
     if ("`exclude'" == "") mata: excludemat = (.,.,.)
     else mata: excludemat = `exclude'
