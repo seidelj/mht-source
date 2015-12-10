@@ -5,7 +5,7 @@
 clear all
 
 do functions.mata
-do listetal.mata
+do seidelxu.mata
 
 mata:
 

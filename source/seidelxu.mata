@@ -2,7 +2,7 @@
 
 mata:
 
-function listetal(Y, sub, D, combo, select ){
+function seidelxu(Y, sub, D, combo, select ){
 
 
 //Parameters set by the function
