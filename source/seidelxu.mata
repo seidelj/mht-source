@@ -1,5 +1,4 @@
 
-
 mata:
 
 function seidelxu(Y, sub, D, combo, select, bootstrap ){
