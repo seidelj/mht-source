@@ -2,12 +2,12 @@
 
 mata:
 
-function seidelxu(Y, sub, D, combo, select ){
+function seidelxu(Y, sub, D, combo, select, bootstrap ){
 
 
 //Parameters set by the function
 n = rows(Y)  //the number of units
-B = 3000 // number of simulated samples
+B = bootstrap // number of simulated samples
 numoc = cols(Y) // number of outcomes
 numsub = colnonmissing(uniqrows(sub)) // number of subgroups
 numg=rows(uniqrows(D)) - 1 // the number of treatment groups (not including the control group)
