@@ -2,7 +2,7 @@
 
 Source code for procedure detailed in List, Shaikh, Xu 2015.
 
-This repository is intended for those who would like to contribute to the project or make adjustments to fit their specific data.  The command for general use can be found [here](https://www.github.com/seidelj/mht).
+This repository is intended for those who wish the modify the procedure.  The command for general use can be found [here](https://www.github.com/seidelj/mht).
 
 ####To compile mata functions
 From the source file, run the buildlib.do file and move the resulting lmhtexp.mlib file to the same dir as the mhtexp.ado file.
