@@ -1,18 +1,6 @@
 #Multiple Hypothesis Testing
 
-Stata code for procedure detailed in List, Shaikh, Xu 2015
-
-##In stata 
-Make sure your current directory contains
-* listetal.ado -- this initializes the stata comand "listetal" for usage from the command line or do file
-* llistetal.mlib -- the required matalab functions that perform the computation
-
-If it is your first time running the code, ensure that mata knows to look in llisetetal.mlib
-
-From the stata command line
-```
-mata: mata mlist index
-```
+Source code for procedure detailed in List, Shaikh, Xu 2015
 
 ####To compile mata functions
 From the source file, run the buildlib.do file and move the resulting lmhtexp.mlib file to the same dir as the mhtexp.ado file.
