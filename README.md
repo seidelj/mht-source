@@ -2,6 +2,8 @@
 
 Source code for procedure detailed in List, Shaikh, Xu 2015.
 
+The software is made available as is, and no warranty - about the software, its performance or its conformity to any specification - is given or implied. 
+
 This repository is intended for those who wish the modify the procedure.  The command for general use can be found [here](https://www.github.com/seidelj/mht).
 
 ####To compile mata functions
